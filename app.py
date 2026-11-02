@@ -189,31 +189,39 @@ h1, h2, h3, h4, h5,
     transform: translateY(-2px);
 }}
 
-/* ===== PERBAIKAN TOMBOL EXPANDER ===== */
-[data-testid="stExpander"] {
+/* ===== EXPANDER DETAIL BUKU ===== */
+[data-testid="stExpander"] {{
     background-color: rgba(255, 253, 208, 0.95) !important;
-    border: 2px solid #66023C !important;
+    border: 2px solid {PURPLE} !important;
     border-top: none !important;
     border-radius: 0 0 12px 12px !important;
     margin-top: -18px;
-    margin-bottom: 20px;
-}
-[data-testid="stExpander"] summary {
+}}
+[data-testid="stExpander"] summary {{
     justify-content: center !important;
-    padding: 10px 0 !important;
-}
-/* Menyembunyikan icon panah/arrow bawaan Streamlit */
-[data-testid="stExpander"] summary svg {
-    display: none !important;
-}
-[data-testid="stExpander"] summary p {
+    padding: 8px 0 !important;
+}}
+[data-testid="stExpander"] summary,
+[data-testid="stExpander"] summary * {{
+    color: {PURPLE} !important;
     font-family: 'Playfair Display', serif !important;
     font-weight: 700 !important;
-    font-size: 11.5px !important;
-    color: #66023C !important;
-    letter-spacing: 1.2px;
-    margin: 0 !important;
-}
+    font-size: 12px !important;
+    letter-spacing: 1.2px !important;
+}}
+[data-testid="stExpander"] p,
+[data-testid="stExpander"] div,
+[data-testid="stExpander"] li,
+[data-testid="stExpander"] span {{
+    color: {DARK_INK} !important;
+    font-family: 'Cormorant Garamond', serif !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+}}
+[data-testid="stExpander"] strong {{
+    font-family: 'Playfair Display', serif !important;
+    color: {PURPLE} !important;
+}}
 
 /* ===== HEADER ===== */
 .top-header {{
@@ -601,8 +609,7 @@ def render_book_card(row, col, tag="BACA", show_sim=False, sim_score=0.0):
     </div>
     """, unsafe_allow_html=True)
 
-    # Menuliskan label teks di sini agar tidak memunculkan icon arrow_right
-    with col.expander("LIHAT DETAIL"):
+    with col.expander(""):
         st.markdown(f"**{row['Book-Title']}**")
         st.markdown(f"- **Penulis:** {row['Book-Author']}")
         st.markdown(f"- **Penerbit:** {row.get('Publisher', '—')}")
@@ -612,7 +619,7 @@ def render_book_card(row, col, tag="BACA", show_sim=False, sim_score=0.0):
             st.markdown(f"- **Rating komunitas:** ⭐ {rv.mean():.1f}/10 ({len(rv)} ulasan)")
         else:
             st.markdown("- **Rating komunitas:** Belum ada ulasan")
-
+        
 # ==========================================
 # HALAMAN 1: BERANDA
 # ==========================================
