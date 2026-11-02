@@ -116,10 +116,26 @@ html, body, [class*="css"] {
 # ===== LOAD & CLEAN DATA =====
 @st.cache_data
 def load_and_clean_data():
-    books = pd.read_csv("BX-Books.csv", sep=";", encoding="latin-1", dtype={"ISBN": str}, on_bad_lines="skip")
-    users = pd.read_csv("BX-Users.csv", sep=";", encoding="latin-1", on_bad_lines="skip")
-    ratings = pd.read_csv("BX-Book-Ratings.csv", sep=";", encoding="latin-1", dtype={"ISBN": str}, on_bad_lines="skip")
+    # 1. Tentukan folder lokal untuk menampung file dari Google Drive
+    dataset_dir = "book_dataset"
+    
+    # 2. Unduh folder dari Google Drive jika belum ada
+    if not os.path.exists(dataset_dir):
+        os.makedirs(dataset_dir, exist_ok=True)
+        folder_url = "https://drive.google.com/drive/folders/1ZZxB1NdkjbVBEykDLN7rXWj9L4P2J3Sp?usp=sharing"
+        gdown.download_folder(folder_url, output=dataset_dir, quiet=False, use_cookies=False)
 
+    # 3. Arahkan path ke dalam folder hasil unduhan
+    path_books = os.path.join(dataset_dir, "BX-Books.csv")
+    path_users = os.path.join(dataset_dir, "BX-Users.csv")
+    path_ratings = os.path.join(dataset_dir, "BX-Book-Ratings.csv")
+
+    # 4. Baca file CSV menggunakan variabel path (BUKAN nama file langsung)
+    books = pd.read_csv(path_books, sep=";", encoding="latin-1", dtype={"ISBN": str}, on_bad_lines="skip")
+    users = pd.read_csv(path_users, sep=";", encoding="latin-1", on_bad_lines="skip")
+    ratings = pd.read_csv(path_ratings, sep=";", encoding="latin-1", dtype={"ISBN": str}, on_bad_lines="skip")
+
+    # --- Proses pembersihan data ---
     books.columns = books.columns.str.strip()
     books = books.drop_duplicates(subset=["ISBN"]).dropna(subset=["ISBN"])
     books["ISBN"] = books["ISBN"].astype(str).str.strip()
@@ -141,34 +157,6 @@ def load_and_clean_data():
     ratings_explicit = ratings[ratings["Book-Rating"] > 0].copy()
     
     return books, users, ratings, ratings_explicit
-
-with st.spinner("Menyeduh teh dan menata koleksi buku..."):
-    books_df, users_df, ratings_df, ratings_explicit = load_and_clean_data()
-
-# ===== HYBRID RECOMMENDATION ENGINE (THE BEST LOGIC) =====
-@st.cache_data
-def build_hybrid_matrices(ratings_exp, books):
-    # Filter buku populer (min 15 rating) untuk efisiensi komputasi
-    counts = ratings_exp["ISBN"].value_counts()
-    popular_isbn = counts[counts >= 15].index
-    
-    # 1. Collaborative Filtering Matrix (Kemiripan Selera Pembaca)
-    filtered_ratings = ratings_exp[ratings_exp["ISBN"].isin(popular_isbn)]
-    pivot = filtered_ratings.pivot_table(index="ISBN", columns="User-ID", values="Book-Rating").fillna(0)
-    cf_sim = cosine_similarity(pivot)
-    cf_sim_df = pd.DataFrame(cf_sim, index=pivot.index, columns=pivot.index)
-    
-    # 2. Content-Based Matrix (Kemiripan Penulis & Judul)
-    pop_books = books[books["ISBN"].isin(popular_isbn)].copy()
-    pop_books = pop_books.set_index("ISBN").reindex(popular_isbn)
-    pop_books["content_features"] = pop_books["Book-Title"].fillna("") + " " + pop_books["Book-Author"].fillna("") + " " + pop_books["Publisher"].fillna("")
-    
-    tfidf = TfidfVectorizer(stop_words="english")
-    tfidf_matrix = tfidf.fit_transform(pop_books["content_features"])
-    cb_sim = cosine_similarity(tfidf_matrix)
-    cb_sim_df = pd.DataFrame(cb_sim, index=popular_isbn, columns=popular_isbn)
-    
-    return cf_sim_df, cb_sim_df
 
 with st.spinner("Melatih AI Hybrid (Collaborative + Content-Based)..."):
     cf_sim_df, cb_sim_df = build_hybrid_matrices(ratings_explicit, books_df)
