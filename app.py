@@ -189,39 +189,31 @@ h1, h2, h3, h4, h5,
     transform: translateY(-2px);
 }}
 
-/* ===== EXPANDER DETAIL BUKU ===== */
-[data-testid="stExpander"] {{
+/* ===== PERBAIKAN TOMBOL EXPANDER ===== */
+[data-testid="stExpander"] {
     background-color: rgba(255, 253, 208, 0.95) !important;
-    border: 2px solid {PURPLE} !important;
+    border: 2px solid #66023C !important;
     border-top: none !important;
     border-radius: 0 0 12px 12px !important;
     margin-top: -18px;
-}}
-[data-testid="stExpander"] summary {{
+    margin-bottom: 20px;
+}
+[data-testid="stExpander"] summary {
     justify-content: center !important;
-    padding: 8px 0 !important;
-}}
-[data-testid="stExpander"] summary,
-[data-testid="stExpander"] summary * {{
-    color: {PURPLE} !important;
+    padding: 10px 0 !important;
+}
+/* Menyembunyikan icon panah/arrow bawaan Streamlit */
+[data-testid="stExpander"] summary svg {
+    display: none !important;
+}
+[data-testid="stExpander"] summary p {
     font-family: 'Playfair Display', serif !important;
     font-weight: 700 !important;
-    font-size: 12px !important;
-    letter-spacing: 1.2px !important;
-}}
-[data-testid="stExpander"] p,
-[data-testid="stExpander"] div,
-[data-testid="stExpander"] li,
-[data-testid="stExpander"] span {{
-    color: {DARK_INK} !important;
-    font-family: 'Cormorant Garamond', serif !important;
-    font-size: 15px !important;
-    line-height: 1.6 !important;
-}}
-[data-testid="stExpander"] strong {{
-    font-family: 'Playfair Display', serif !important;
-    color: {PURPLE} !important;
-}}
+    font-size: 11.5px !important;
+    color: #66023C !important;
+    letter-spacing: 1.2px;
+    margin: 0 !important;
+}
 
 /* ===== HEADER ===== */
 .top-header {{
@@ -609,7 +601,8 @@ def render_book_card(row, col, tag="BACA", show_sim=False, sim_score=0.0):
     </div>
     """, unsafe_allow_html=True)
 
-    with col.expander(""):
+    # Menuliskan label teks di sini agar tidak memunculkan icon arrow_right
+    with col.expander("LIHAT DETAIL"):
         st.markdown(f"**{row['Book-Title']}**")
         st.markdown(f"- **Penulis:** {row['Book-Author']}")
         st.markdown(f"- **Penerbit:** {row.get('Publisher', '—')}")
