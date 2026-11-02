@@ -1,5 +1,5 @@
 # ==========================================================
-# RUANG BACA — CITRON & TYRIAN PURPLE THEME
+# RUANG BACA — TYRIAN PURPLE × CITRON × CREAM THEME
 # ==========================================================
 
 import streamlit as st
@@ -10,328 +10,167 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 import os
 import gdown
+import base64
 
 # ===== PAGE CONFIG =====
 st.set_page_config(
     page_title="Ruang Baca",
-    page_icon="📖",
+    page_icon="🌿",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ===== CSS KUSTOM =====
-st.markdown("""
+# ===== PALET WARNA =====
+CITRON   = "#CAD183"
+PURPLE   = "#66023C"
+CREAM    = "#FFFDD0"
+DARK_INK = "#3D0A22"   
+SOFT     = "#F6F3C8"   
+
+# ===== HELPER & ASSETS =====
+def get_base64_image(image_path):
+    try:
+        with open(image_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except Exception:
+        return ""
+
+# Deteksi otomatis background dari folder assets jika ada
+BG_IMAGE = ""
+for ext in ["jpg", "jpeg", "png", "webp"]:
+    path = f"assets/background.{ext}"
+    if os.path.exists(path):
+        BG_IMAGE = get_base64_image(path)
+        break
+
+bg_css = f"linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)), url('data:image/jpeg;base64,{BG_IMAGE}')" if BG_IMAGE else CREAM
+
+# ===== CSS =====
+st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 
-/* ===== PALET WARNA =====
-   Citron       : #CAD183
-   Tyrian Purple: #66023C
-   Cream        : #FFFDD0
-   Pastel Pink  : #F5D6E0
-========================= */
+html, body, [class*="css"] {{
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    color: {DARK_INK};
+    font-size: 16px;
+}}
+[data-testid="stAppViewContainer"] *,
+[data-testid="stSidebar"] *,
+.stApp * {{
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+}}
 
-html, body, [class*="css"] {
-    font-family: 'Poppins', sans-serif;
-    color: #66023C;
-}
-.stApp {
-    background-color: #FFFDD0;
-}
+h1, h2, h3, h4, h5,
+.page-title, .section-title, .header-title,
+.kpi-value, .book-title, .mood-label {{
+    font-family: 'Playfair Display', Georgia, serif !important;
+}}
+
+.stApp {{
+    background: {bg_css};
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}}
 [data-testid="stAppViewContainer"],
 [data-testid="stHeader"],
 [data-testid="stToolbar"],
-[data-testid="stDecoration"],
-section.main > div {
+[data-testid="stDecoration"] {{
     background: transparent !important;
-}
+}}
 
-/* ===== SIDEBAR ===== */
-[data-testid="stSidebar"] {
-    background-color: #66023C !important;
-    border-right: 1px solid #CAD183;
-}
-[data-testid="stSidebar"] * {
-    color: #FFFDD0 !important;
-    font-family: 'Poppins', sans-serif;
-}
-[data-testid="stSidebar"] [role="radiogroup"] label {
-    background: transparent;
-    border-radius: 10px;
+/* SIDEBAR */
+[data-testid="stSidebar"] {{
+    background-color: {PURPLE} !important;
+    border-right: 1px solid rgba(202, 209, 131, 0.25);
+}}
+[data-testid="stSidebar"] * {{
+    color: {CREAM} !important;
+}}
+[data-testid="stSidebar"] [role="radiogroup"] label {{
+    border-radius: 8px;
+    padding: 8px 12px !important;
+    font-size: 17px;
+}}
+
+/* SEARCH & INPUT */
+[data-testid="stTextInput"] div[data-baseweb="input"] {{
+    background-color: rgba(255, 253, 208, 0.9) !important;
+    border: 2px solid {PURPLE} !important;
+    border-radius: 10px !important;
+}}
+[data-testid="stTextInput"] input {{
+    color: {DARK_INK} !important;
+    background-color: transparent !important;
+    font-size: 16px !important;
+}}
+
+/* BUTTONS */
+[data-testid="stButton"] button {{
+    background-color: {PURPLE} !important;
+    border: none !important;
+    border-radius: 8px !important;
     padding: 8px 14px !important;
-    transition: 0.2s;
-}
-[data-testid="stSidebar"] [role="radiogroup"] label:hover {
-    background: rgba(202, 209, 131, 0.18);
-}
+}}
+[data-testid="stButton"] button p,
+[data-testid="stButton"] button span {{
+    color: {CREAM} !important;
+    font-family: 'Playfair Display', serif !important;
+    font-weight: 700 !important;
+}}
 
-/* ===== SEARCH BAR ===== */
-[data-testid="stTextInput"] div[data-baseweb="input"] {
-    background-color: #FFFDD0 !important;
-    border: 1.5px solid #CAD183 !important;
-    border-radius: 8px !important;
-    box-shadow: 0 2px 10px rgba(102, 2, 60, 0.06) !important;
-}
-[data-testid="stTextInput"] input {
-    color: #66023C !important;
-    background-color: #FFFDD0 !important;
-    font-family: 'Poppins', sans-serif !important;
-}
-[data-testid="stTextInput"] input::placeholder {
-    color: #A88A99 !important;
-}
-
-/* ===== SELECTBOX & SLIDER ===== */
-[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-    background-color: #FFFDD0 !important;
-    border: 1.5px solid #CAD183 !important;
-    color: #66023C !important;
-}
-[data-testid="stSelectbox"] span {
-    color: #66023C !important;
-}
-.stSlider [data-baseweb="slider"] div {
-    color: #66023C !important;
-}
-
-/* ===== EXPANDER DETAIL ===== */
-[data-testid="stExpander"] {
-    background-color: #FFFDD0 !important;
-    border: 1px solid #CAD183 !important;
-    border-radius: 0 0 12px 12px !important;
-    box-shadow: 0 4px 15px rgba(102, 2, 60, 0.04) !important;
-    margin-top: -18px;
-}
-[data-testid="stExpander"] summary {
-    color: #66023C !important;
-    font-weight: 600 !important;
-    font-size: 13px !important;
-    justify-content: center !important;
-}
-[data-testid="stExpander"] p, [data-testid="stExpander"] div {
-    color: #66023C !important;
-    font-size: 12.5px !important;
-    line-height: 1.6 !important;
-}
-
-/* ===== HEADER ===== */
-.top-header {
-    background: linear-gradient(135deg, #CAD183 0%, #FFFDD0 100%);
-    padding: 28px 32px;
+/* HEADER & CARDS */
+.top-header {{
+    background: {PURPLE};
+    padding: 32px 38px;
     border-radius: 18px;
-    color: #66023C;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 28px;
-    border: 1px solid #CAD183;
-    box-shadow: 0 6px 24px rgba(102, 2, 60, 0.08);
-}
-.header-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 32px;
-    font-weight: 700;
-    margin: 0;
-    letter-spacing: 0.3px;
-    color: #66023C;
-}
-.header-subtitle {
-    font-size: 15px;
-    font-weight: 400;
-    opacity: 0.85;
-    margin-top: 6px;
-    color: #66023C;
-}
-
-/* ===== SECTION TITLE ===== */
-.section-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 28px;
-    font-weight: 700;
-    color: #66023C;
-    text-align: center;
-    margin-top: 45px;
-    margin-bottom: 25px;
-    font-style: italic;
-}
-.section-title::after {
-    content: '';
-    display: block;
-    width: 50px;
-    height: 2px;
-    background-color: #CAD183;
-    margin: 12px auto 0;
-    border-radius: 2px;
-}
-
-/* ===== BOOK CARD ===== */
-.book-card {
-    background: #FFFDD0;
-    border-radius: 12px 12px 0 0;
-    padding: 20px 15px;
-    border: 1.5px solid #CAD183;
-    border-bottom: none;
-    text-align: center;
-    height: 100%;
-    position: relative;
-    transition: all 0.25s ease;
-}
-.book-card:hover {
-    box-shadow: 0 8px 22px rgba(102, 2, 60, 0.12);
-    transform: translateY(-3px);
-}
-.book-cover-container {
-    height: 180px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 18px;
-}
-.book-cover {
-    max-height: 100%;
-    max-width: 100%;
-    object-fit: contain;
-    border-radius: 4px;
-    box-shadow: 2px 4px 10px rgba(102, 2, 60, 0.15);
-}
-.badge-tag {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    background: #66023C;
-    color: #FFFDD0;
-    font-size: 10px;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 20px;
-    letter-spacing: 0.6px;
-}
-.book-title {
-    font-family: 'Playfair Display', serif;
-    font-weight: 700;
-    font-size: 15px;
-    color: #66023C;
-    margin-bottom: 6px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.3;
-}
-.book-author {
-    color: #8B4563;
-    font-size: 12.5px;
-    font-weight: 500;
-    margin-bottom: 6px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.book-year {
-    color: #A88A99;
-    font-size: 11.5px;
-    font-weight: 500;
-    margin-bottom: 10px;
-}
-
-/* ===== KPI ===== */
-.kpi-card {
-    background: #FFFDD0;
-    border-radius: 14px;
-    padding: 22px;
-    text-align: center;
-    border: 1.5px solid #CAD183;
-    box-shadow: 0 4px 15px rgba(102, 2, 60, 0.05);
-}
-.kpi-icon {
-    font-size: 26px;
-    margin-bottom: 10px;
-    color: #66023C;
-}
-.kpi-title {
-    font-size: 13px;
-    color: #8B4563;
-    font-weight: 600;
-    margin-bottom: 6px;
-    letter-spacing: 0.6px;
-    text-transform: uppercase;
-}
-.kpi-value {
-    font-family: 'Playfair Display', serif;
-    font-size: 30px;
-    font-weight: 700;
-    color: #66023C;
-}
-
-/* ===== MOOD CARD ===== */
-.mood-card {
-    background: #FFFDD0;
-    border-radius: 14px;
-    padding: 22px 14px;
-    border: 1.5px solid #CAD183;
-    box-shadow: 0 4px 15px rgba(102, 2, 60, 0.05);
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.25s ease;
-}
-.mood-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 22px rgba(102, 2, 60, 0.15);
-    border-color: #66023C;
-}
-.mood-icon {
-    font-size: 36px;
-    margin-bottom: 10px;
-}
-.mood-label {
-    font-family: 'Playfair Display', serif;
-    font-size: 15px;
-    font-weight: 600;
-    color: #66023C;
-}
-.mood-card.active {
-    border-color: #66023C;
-    background: #F5D6E0;
-}
-
-/* ===== BUTTON ===== */
-.stButton > button {
-    background-color: #66023C !important;
-    color: #FFFDD0 !important;
-    border: 1px solid #66023C !important;
-    border-radius: 8px !important;
-    font-family: 'Poppins', sans-serif !important;
-    font-weight: 500 !important;
-    transition: 0.2s !important;
-}
-.stButton > button:hover {
-    background-color: #CAD183 !important;
-    color: #66023C !important;
-    border-color: #CAD183 !important;
-}
-
-/* ===== DIVIDER ===== */
-hr {
-    border-color: #CAD183 !important;
-    opacity: 0.5;
-}
+    box-shadow: 0 8px 0 {CITRON};
+}}
+.header-title {{
+    font-family: 'Playfair Display', serif !important;
+    font-size: 36px; font-weight: 700; margin: 0; color: {CREAM};
+}}
+.header-title em {{ color: {CITRON}; font-style: italic; }}
+.header-subtitle {{
+    font-size: 18px; opacity: 0.9; margin-top: 6px; color: {CREAM}; font-style: italic;
+}}
+.section-title {{
+    font-family: 'Playfair Display', serif !important;
+    font-size: 32px; font-weight: 600; color: {PURPLE}; text-align: center;
+    margin-top: 44px; margin-bottom: 8px; font-style: italic;
+}}
+.section-sub {{
+    text-align: center; color: {PURPLE}; opacity: 0.6;
+    font-size: 14px; letter-spacing: 3px; margin-bottom: 28px; text-transform: uppercase; font-style: italic;
+}}
+.book-card {{
+    background: rgba(255, 253, 208, 0.95);
+    border-radius: 12px 12px 0 0; padding: 20px 15px;
+    border: 2px solid {PURPLE}; border-bottom: none;
+    text-align: center; height: 100%; position: relative;
+}}
+.book-cover-container {{ height: 190px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }}
+.book-cover {{ max-height: 100%; max-width: 100%; object-fit: contain; border-radius: 4px; box-shadow: 4px 4px 0 {PURPLE}; }}
+.badge-tag {{
+    position: absolute; top: 12px; left: 12px; background: {CITRON}; color: {PURPLE};
+    font-size: 10px; font-weight: 800; padding: 4px 11px; border-radius: 20px;
+}}
+.book-title {{ font-weight: 700; font-size: 16px; color: {PURPLE}; margin-bottom: 6px; }}
+.book-author {{ color: {DARK_INK}; opacity: 0.7; font-size: 14px; font-style: italic; }}
+.kpi-card, .mood-card {{
+    background: rgba(255, 253, 208, 0.95); border-radius: 14px; padding: 24px 20px;
+    text-align: center; border: 2px solid {PURPLE}; box-shadow: 5px 5px 0 {PURPLE};
+}}
+.info-box {{
+    background: rgba(255, 253, 208, 0.95); border-left: 6px solid {CITRON};
+    padding: 18px 24px; border-radius: 8px; margin-bottom: 28px; font-style: italic; color: {PURPLE};
+    border: 1px solid {PURPLE};
+}}
 </style>
 """, unsafe_allow_html=True)
-
-# ===== HELPERS =====
-def format_year(y):
-    try:
-        if pd.isna(y):
-            return "—"
-        return str(int(float(y)))
-    except (ValueError, TypeError):
-        return "—"
-
-def get_cover(row):
-    url = row.get("Image-URL-M", "")
-    if pd.isna(url) or not isinstance(url, str) or len(url) < 10:
-        return f"https://covers.openlibrary.org/b/isbn/{row['ISBN']}-M.jpg"
-    return url
 
 # ===== LOAD & CLEAN DATA =====
 @st.cache_data
@@ -401,67 +240,58 @@ with st.spinner("Memproses rekomendasi buku..."):
 
 # ===== SIDEBAR =====
 with st.sidebar:
-    st.markdown('<div style="text-align:center; font-size:45px; margin-bottom:5px;">📖</div>', unsafe_allow_html=True)
-    st.markdown('<h2 style="text-align:center; margin-top:0; font-family:\'Playfair Display\', serif; font-weight:700; font-style:italic;">Ruang Baca</h2>', unsafe_allow_html=True)
-    st.markdown('<p style="text-align:center; font-size:12px; opacity:0.85; margin-bottom:30px; letter-spacing:1px;">TEMPAT MENENANGKAN PIKIRAN</p>', unsafe_allow_html=True)
-
+    st.markdown('<div style="text-align:center; font-size:48px; margin-bottom:6px;">🌿</div>', unsafe_allow_html=True)
+    st.markdown('<h1 style="text-align:center; margin:0; font-family:\'Playfair Display\', serif; font-weight:700; font-style:italic; font-size:34px; color:#FFFDD0;">Ruang Baca</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align:center; font-size:11px; letter-spacing:3px; opacity:0.7; margin-top:6px; margin-bottom:28px; color:#CAD183;">TEMPAT MENENANGKAN PIKIRAN</p>', unsafe_allow_html=True)
+    
     page = st.radio("Navigasi", ["🏠 Beranda", "📊 Estetika Data", "🎯 Kurator Personal"])
-    st.markdown('<div style="margin-top: 50px; font-size:11px; text-align:center; opacity:0.7;">Disusun dengan AI Hybrid<br>2026</div>', unsafe_allow_html=True)
 
 # ===== BOOK CARD =====
 def render_book_card(row, col, tag="BACA", show_sim=False, sim_score=0):
-    cover_url = get_cover(row)
-    year_str = format_year(row.get("Year-Of-Publication"))
+    cover_url = row.get("Image-URL-M", "")
+    if pd.isna(cover_url) or len(cover_url) < 10:
+        cover_url = f"https://covers.openlibrary.org/b/isbn/{row['ISBN']}-M.jpg"
+    
+    year_val = row.get("Year-Of-Publication")
+    year_str = str(int(float(year_val))) if pd.notna(year_val) else "—"
 
-    if show_sim:
-        info_html = f'<div style="font-size:11px; color:#66023C; margin-bottom:10px; font-weight:600;">Cocok {sim_score*100:.0f}%</div>'
-    else:
-        info_html = f'<div class="book-year">Terbitan {year_str}</div>'
+    info_html = f'<div style="background:#CAD183; color:#66023C; padding:3px 12px; border-radius:999px; font-size:11px; font-weight:700;">Cocok {sim_score*100:.0f}%</div>' if show_sim else f'<div style="font-size:10.5px; opacity:0.55; letter-spacing:1.5px; font-weight:700; margin-bottom:10px;">TERBIT {year_str}</div>'
 
     col.markdown(f"""
     <div class="book-card">
         <div class="badge-tag">{tag}</div>
         <div class="book-cover-container">
-            <img src="{cover_url}" class="book-cover"
-                 onerror="this.src='https://via.placeholder.com/130x200?text=No+Cover'">
+            <img src="{cover_url}" class="book-cover" onerror="this.src='https://via.placeholder.com/130x200/FFFDD0/66023C?text=No+Cover'">
         </div>
         <div class="book-title" title="{row['Book-Title']}">{row['Book-Title']}</div>
-        <div class="book-author">Oleh {row['Book-Author']}</div>
+        <div class="book-author">oleh {row['Book-Author']}</div>
         {info_html}
     </div>
     """, unsafe_allow_html=True)
 
-    with col.expander("🔎 Lihat Detail"):
+    with col.expander("🔎 LIHAT DETAIL"):
         st.markdown(f"**{row['Book-Title']}**")
         st.markdown(f"- **Penulis:** {row['Book-Author']}")
         st.markdown(f"- **Penerbit:** {row.get('Publisher', '—')}")
         st.markdown(f"- **Tahun:** {year_str}")
-        rating_val = ratings_explicit[ratings_explicit["ISBN"] == row["ISBN"]]["Book-Rating"]
-        if len(rating_val):
-            st.markdown(f"- **Rating komunitas:** ⭐ {rating_val.mean():.1f}/10 ({len(rating_val)} ulasan)")
-        else:
-            st.markdown("- **Rating komunitas:** —")
 
 # ==========================================
 # HALAMAN 1: BERANDA
 # ==========================================
 if page == "🏠 Beranda":
-    st.markdown("""
+    st.markdown(f"""
     <div class="top-header">
         <div>
-            <div class="header-title">Halo, Selamat Datang di Ruang Baca.</div>
+            <div class="header-title">Selamat datang di <em>Ruang Baca</em>.</div>
             <div class="header-subtitle">Temukan buku yang menenangkan pikiranmu hari ini.</div>
         </div>
-        <div style="font-size:28px; color:#66023C;">🕊️</div>
+        <div style="background:#CAD183; color:#66023C; padding:7px 16px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:2px;">EST. 2026</div>
     </div>
     """, unsafe_allow_html=True)
 
-    search_q = st.text_input("", placeholder="🔍 Ketik judul buku atau penulis favoritmu di sini...", label_visibility="collapsed")
+    search_q = st.text_input("", placeholder="🔍 Cari judul atau penulis favoritmu...", label_visibility="collapsed")
     if search_q:
-        res = books_df[
-            books_df["Book-Title"].str.contains(search_q, case=False, na=False) |
-            books_df["Book-Author"].str.contains(search_q, case=False, na=False)
-        ].head(5)
+        res = books_df[books_df["Book-Title"].str.contains(search_q, case=False, na=False) | books_df["Book-Author"].str.contains(search_q, case=False, na=False)].head(5)
         if not res.empty:
             st.success(f"Menemukan {len(res)} buku yang mungkin kamu cari 🤍")
             cols = st.columns(len(res))
@@ -469,116 +299,33 @@ if page == "🏠 Beranda":
                 render_book_card(row, cols[i], tag="PILIHAN")
 
     st.markdown('<div class="section-title">Koleksi Terpopuler</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-sub">bulan ini</div>', unsafe_allow_html=True)
+
     top_isbn = ratings_explicit["ISBN"].value_counts().head(6).index
     best_sellers = books_df[books_df["ISBN"].isin(top_isbn)].drop_duplicates(subset=["ISBN"])
     cols = st.columns(6)
     for i, (_, row) in enumerate(best_sellers.head(6).iterrows()):
         render_book_card(row, cols[i], tag="TERPOPULER")
 
-    st.markdown('<br><br>', unsafe_allow_html=True)
-
-    # ===== MOOD SECTION =====
-    st.markdown('<div class="section-title">Baca Sesuai Mood-mu</div>', unsafe_allow_html=True)
-
-    mood_map = {
-        "🍵  Menenangkan Pikiran": ["Spiritual", "Philosophy", "Self-Help", "Inspirational",
-                                    "Poetry", "Meditation", "Peace", "Zen"],
-        "✨  Petualangan Magis": ["Fantasy", "Magic", "Adventure", "Epic", "Wizard",
-                                  "Quest", "Dragon", "Myth"],
-        "🌱  Pengembangan Diri": ["Self", "Business", "Success", "Psychology", "Motivation",
-                                  "Productivity", "Leadership", "Personal"],
-        "💌  Romansa Klasik": ["Romance", "Love", "Passion", "Heart", "Historical",
-                               "Victorian", "Regency", "Bride"],
-    }
-    mood_icons = {"🍵  Menenangkan Pikiran": "🍵", "✨  Petualangan Magis": "✨",
-                  "🌱  Pengembangan Diri": "🌱", "💌  Romansa Klasik": "💌"}
-    mood_labels = {k: k.split("  ", 1)[1] for k in mood_map}
-
-    mood_cols = st.columns(4)
-    selected_mood = st.session_state.get("selected_mood", None)
-    for i, mood in enumerate(mood_map.keys()):
-        is_active = (selected_mood == mood)
-        active_cls = " active" if is_active else ""
-        with mood_cols[i]:
-            st.markdown(f"""
-            <div class="mood-card{active_cls}">
-                <div class="mood-icon">{mood_icons[mood]}</div>
-                <div class="mood-label">{mood_labels[mood]}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button("Pilih" if not is_active else "✓ Terpilih",
-                         key=f"mood_{i}", use_container_width=True):
-                st.session_state["selected_mood"] = None if is_active else mood
-                st.rerun()
-
-    if st.session_state.get("selected_mood"):
-        mood = st.session_state["selected_mood"]
-        keywords = mood_map[mood]
-        pattern = "|".join(keywords)
-        mood_books = books_df[
-            books_df["Book-Title"].str.contains(pattern, case=False, na=False) |
-            books_df["Book-Author"].str.contains(pattern, case=False, na=False) |
-            books_df["Publisher"].str.contains(pattern, case=False, na=False)
-        ].drop_duplicates(subset=["ISBN"]).head(6)
-
-        st.markdown(f"<h4 style='font-family:\"Playfair Display\", serif; color:#66023C; margin-top:25px; font-style:italic;'>Rekomendasi untuk: {mood_labels[mood]}</h4>", unsafe_allow_html=True)
-        if mood_books.empty:
-            top_ids = (ratings_explicit.groupby("ISBN")["Book-Rating"].mean()
-                       .sort_values(ascending=False).head(6).index)
-            mood_books = books_df[books_df["ISBN"].isin(top_ids)].drop_duplicates(subset=["ISBN"])
-            st.caption("Belum ada buku spesifik untuk mood ini. Berikut pilihan rating tertinggi dari komunitas.")
-
-        cols = st.columns(6)
-        for i, (_, row) in enumerate(mood_books.head(6).iterrows()):
-            render_book_card(row, cols[i], tag="MOOD")
-
 # ==========================================
 # HALAMAN 2: ESTETIKA DATA
 # ==========================================
 elif page == "📊 Estetika Data":
     st.markdown('<div class="section-title">Harmoni Ekosistem Buku</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-sub">data dalam harmoni</div>', unsafe_allow_html=True)
 
     k1, k2, k3, k4 = st.columns(4)
     k1.markdown(f'<div class="kpi-card"><div class="kpi-icon">📚</div><div class="kpi-title">Koleksi Buku</div><div class="kpi-value">{books_df["ISBN"].nunique():,}</div></div>', unsafe_allow_html=True)
     k2.markdown(f'<div class="kpi-card"><div class="kpi-icon">👥</div><div class="kpi-title">Pembaca Setia</div><div class="kpi-value">{users_df["User-ID"].nunique():,}</div></div>', unsafe_allow_html=True)
     k3.markdown(f'<div class="kpi-card"><div class="kpi-icon">💌</div><div class="kpi-title">Total Ulasan</div><div class="kpi-value">{len(ratings_df):,}</div></div>', unsafe_allow_html=True)
-    k4.markdown(f'<div class="kpi-card"><div class="kpi-icon">⭐</div><div class="kpi-title">Kepuasan</div><div class="kpi-value">{ratings_explicit["Book-Rating"].mean():.1f}/10</div></div>', unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    col_chart1, col_chart2 = st.columns(2)
-
-    with col_chart1:
-        st.markdown("<h4 style='text-align:center; font-family:\"Playfair Display\", serif; color:#66023C; font-style:italic;'>Sebaran Apresiasi Pembaca</h4>", unsafe_allow_html=True)
-        dist = ratings_explicit["Book-Rating"].value_counts().sort_index().reset_index()
-        dist.columns = ["Rating", "Jumlah"]
-        fig1 = px.bar(dist, x="Rating", y="Jumlah", color_discrete_sequence=["#66023C"])
-        fig1.update_layout(
-            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-            xaxis=dict(dtick=1, showgrid=False, title="Skor Bintang"),
-            yaxis=dict(showgrid=True, gridcolor="#CAD183", title="Jumlah Ulasan"),
-            font=dict(family="Poppins", color="#66023C"),
-        )
-        fig1.update_traces(marker_line_width=0, opacity=0.9)
-        st.plotly_chart(fig1, use_container_width=True)
-
-    with col_chart2:
-        st.markdown("<h4 style='text-align:center; font-family:\"Playfair Display\", serif; color:#66023C; font-style:italic;'>Demografi Usia Pembaca</h4>", unsafe_allow_html=True)
-        fig2 = px.histogram(users_df.dropna(subset=["Age"]), x="Age", nbins=25, color_discrete_sequence=["#CAD183"])
-        fig2.update_layout(
-            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-            xaxis=dict(showgrid=False, title="Usia"),
-            yaxis=dict(showgrid=True, gridcolor="#CAD183", title="Jumlah Pembaca"),
-            font=dict(family="Poppins", color="#66023C"),
-        )
-        fig2.update_traces(marker_line_width=0, opacity=0.95)
-        st.plotly_chart(fig2, use_container_width=True)
+    k4.markdown(f'<div class="kpi-card"><div class="kpi-icon">⭐</div><div class="kpi-title">Kepuasan Rata-rata</div><div class="kpi-value">{ratings_explicit["Book-Rating"].mean():.1f}<small> / 10</small></div></div>', unsafe_allow_html=True)
 
 # ==========================================
-# HALAMAN 3: AI KURATOR PERSONAL
+# HALAMAN 3: KURATOR PERSONAL
 # ==========================================
 elif page == "🎯 Kurator Personal":
     st.markdown('<div class="section-title">Kurasi Spesial Untukmu</div>', unsafe_allow_html=True)
-    st.markdown("<p style='text-align:center; color:#8B4563; margin-bottom:30px;'>Beritahu kami satu buku yang kamu suka, dan mesin kognitif kami akan meracik rekomendasi yang senada.</p>", unsafe_allow_html=True)
+    st.markdown('<div class="section-sub">pilih buku, dapatkan racikan</div>', unsafe_allow_html=True)
 
     valid_books = books_df[books_df["ISBN"].isin(cf_sim_df.index)]
     book_options = valid_books["Book-Title"].dropna().unique()
@@ -587,17 +334,8 @@ elif page == "🎯 Kurator Personal":
 
     if selected_title:
         ref_isbn = valid_books[valid_books["Book-Title"] == selected_title]["ISBN"].values[0]
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("<p style='font-weight:600; color:#66023C; font-family:\"Playfair Display\", serif; font-style:italic;'>Atur Karakter Rekomendasi (Hybrid AI)</p>", unsafe_allow_html=True)
-        alpha = st.slider(
-            "Geser ke kiri = Mirip Tema & Penulis (Content) | Geser ke kanan = Mirip Selera Pembaca Lain (Collaborative)",
-            min_value=0.0, max_value=1.0, value=0.6, step=0.1, label_visibility="collapsed"
-        )
-
-        st.markdown("---")
-        st.markdown("<h3 style='font-family:\"Playfair Display\", serif; color:#66023C; font-style:italic;'>✨ Bacaan yang Mungkin Mengisi Hatimu:</h3><br>", unsafe_allow_html=True)
-
+        alpha = st.slider("Geser kiri = mirip tema | Geser kanan = mirip pembaca lain", 0.0, 1.0, 0.6, 0.1)
+        
         cf_scores = cf_sim_df[ref_isbn]
         cb_scores = cb_sim_df[ref_isbn]
         hybrid_scores = (alpha * cf_scores) + ((1 - alpha) * cb_scores)
@@ -609,6 +347,4 @@ elif page == "🎯 Kurator Personal":
         for i, isbn in enumerate(top_similar_isbns):
             book_row = reco_books[reco_books["ISBN"] == isbn]
             if not book_row.empty:
-                score = hybrid_scores[isbn]
-                render_book_card(book_row.iloc[0], cols[i], tag="REKOMENDASI",
-                                 show_sim=True, sim_score=score)
+                render_book_card(book_row.iloc[0], cols[i], tag="REKOMENDASI", show_sim=True, sim_score=hybrid_scores[isbn])
