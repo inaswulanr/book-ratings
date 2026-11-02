@@ -64,7 +64,7 @@ if not BG_IMAGE and os.path.exists("assets") and os.path.isdir("assets"):
 
 # Overlay putih transparan tipis agar garis pastel kalem & teks Tyrian Purple tetap tajam terbaca
 if BG_IMAGE:
-    bg_css = f"linear-gradient(rgba(255, 253, 208, 0.78), rgba(255, 253, 208, 0.78)), url('data:image/jpeg;base64,{BG_IMAGE}')"
+    bg_css = f"url('data:image/jpeg;base64,{BG_IMAGE}')"
 else:
     bg_css = CREAM
 
