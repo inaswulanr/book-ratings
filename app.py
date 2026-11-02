@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 import os
+import gdown
 
 # ===== PAGE CONFIG =====
 st.set_page_config(
@@ -19,84 +20,25 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ===== CSS KUSTOM (Tema Menyegarkan, Kalem, Minimalis, Feminin) =====
+# ===== CSS KUSTOM =====
 st.markdown("""
 <style>
-/* Import Font: Quicksand (Modern Minimalis) & Lora (Elegan/Feminin untuk Judul Buku) */
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Quicksand:wght@300;400;500;600;700&display=swap');
 
-html, body, [class*="css"] { 
-    font-family: 'Quicksand', sans-serif; 
-    color: #4A5553; /* Soft Dark Teal/Grey */
-}
+html, body, [class*="css"] { font-family: 'Quicksand', sans-serif; color: #4A5553; }
+.stApp { background-color: #F9FAF8; }
+[data-testid="stSidebar"] { background-color: #9CB4A1; color: white; }
+[data-testid="stSidebar"] * { color: white !important; font-family: 'Quicksand', sans-serif; }
 
-/* Light Mode Background yang Kalem (Warm Off-White) */
-.stApp { 
-    background-color: #F9FAF8; 
-}
-
-/* Sidebar Styling (Sage Green) */
-[data-testid="stSidebar"] { 
-    background-color: #9CB4A1; 
-    color: white; 
-}
-[data-testid="stSidebar"] * { 
-    color: white !important; 
-    font-family: 'Quicksand', sans-serif;
-}
-
-/* Header Navbar */
-.top-header {
-    background: linear-gradient(135deg, #B2C9AB, #E8D7D0);
-    padding: 25px 30px;
-    border-radius: 16px;
-    color: #4A5553;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-    box-shadow: 0 4px 20px rgba(156, 180, 161, 0.15);
-}
+.top-header { background: linear-gradient(135deg, #B2C9AB, #E8D7D0); padding: 25px 30px; border-radius: 16px; color: #4A5553; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(156, 180, 161, 0.15); }
 .header-title { font-family: 'Lora', serif; font-size: 28px; font-weight: 600; margin: 0; letter-spacing: 0.5px; }
 .header-subtitle { font-size: 15px; font-weight: 400; opacity: 0.85; margin-top: 4px;}
 
-/* Section Title */
-.section-title {
-    font-family: 'Lora', serif;
-    font-size: 26px;
-    font-weight: 600;
-    color: #4A5553;
-    text-align: center;
-    margin-top: 40px;
-    margin-bottom: 25px;
-}
-.section-title::after {
-    content: '';
-    display: block;
-    width: 40px;
-    height: 2px;
-    background-color: #D4A373; /* Soft Earthy Peach */
-    margin: 10px auto 0;
-    border-radius: 2px;
-}
+.section-title { font-family: 'Lora', serif; font-size: 26px; font-weight: 600; color: #4A5553; text-align: center; margin-top: 40px; margin-bottom: 25px; }
+.section-title::after { content: ''; display: block; width: 40px; height: 2px; background-color: #D4A373; margin: 10px auto 0; border-radius: 2px; }
 
-/* Book Card UI (Soft, Glassmorphism touch) */
-.book-card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-    transition: all 0.3s ease;
-    text-align: center;
-    height: 100%;
-    position: relative;
-    border: 1px solid #F0F2EF;
-}
-.book-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 25px rgba(156, 180, 161, 0.15);
-    border-color: #9CB4A1;
-}
+.book-card { background: white; border-radius: 12px; padding: 20px 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: all 0.3s ease; text-align: center; height: 100%; position: relative; border: 1px solid #F0F2EF; }
+.book-card:hover { transform: translateY(-6px); box-shadow: 0 12px 25px rgba(156, 180, 161, 0.15); border-color: #9CB4A1; }
 .book-cover-container { height: 180px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
 .book-cover { max-height: 100%; max-width: 100%; object-fit: contain; border-radius: 4px; box-shadow: 2px 4px 10px rgba(0,0,0,0.08); }
 .badge-tag { position: absolute; top: 12px; left: 12px; background: #E8D7D0; color: #4A5553; font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px;}
@@ -105,7 +47,6 @@ html, body, [class*="css"] {
 .btn-action { background: #F9FAF8; border: 1px solid #9CB4A1; color: #9CB4A1; padding: 8px 15px; font-size: 12px; font-weight: 600; border-radius: 20px; cursor: pointer; transition: 0.3s; text-decoration: none; display: inline-block; width: 80%; }
 .btn-action:hover { background: #9CB4A1; color: white; }
 
-/* KPI Cards */
 .kpi-card { background: white; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #F0F2EF; }
 .kpi-icon { font-size: 24px; margin-bottom: 10px; color: #9CB4A1; }
 .kpi-title { font-size: 13px; color: #8FA998; font-weight: 600; margin-bottom: 5px; letter-spacing: 0.5px;}
@@ -116,26 +57,20 @@ html, body, [class*="css"] {
 # ===== LOAD & CLEAN DATA =====
 @st.cache_data
 def load_and_clean_data():
-    # 1. Tentukan folder lokal untuk menampung file dari Google Drive
     dataset_dir = "book_dataset"
-    
-    # 2. Unduh folder dari Google Drive jika belum ada
     if not os.path.exists(dataset_dir):
         os.makedirs(dataset_dir, exist_ok=True)
         folder_url = "https://drive.google.com/drive/folders/1ZZxB1NdkjbVBEykDLN7rXWj9L4P2J3Sp?usp=sharing"
         gdown.download_folder(folder_url, output=dataset_dir, quiet=False, use_cookies=False)
 
-    # 3. Arahkan path ke dalam folder hasil unduhan
     path_books = os.path.join(dataset_dir, "BX-Books.csv")
     path_users = os.path.join(dataset_dir, "BX-Users.csv")
     path_ratings = os.path.join(dataset_dir, "BX-Book-Ratings.csv")
 
-    # 4. Baca file CSV menggunakan variabel path (BUKAN nama file langsung)
     books = pd.read_csv(path_books, sep=";", encoding="latin-1", dtype={"ISBN": str}, on_bad_lines="skip")
     users = pd.read_csv(path_users, sep=";", encoding="latin-1", on_bad_lines="skip")
     ratings = pd.read_csv(path_ratings, sep=";", encoding="latin-1", dtype={"ISBN": str}, on_bad_lines="skip")
 
-    # --- Proses pembersihan data ---
     books.columns = books.columns.str.strip()
     books = books.drop_duplicates(subset=["ISBN"]).dropna(subset=["ISBN"])
     books["ISBN"] = books["ISBN"].astype(str).str.strip()
@@ -158,7 +93,35 @@ def load_and_clean_data():
     
     return books, users, ratings, ratings_explicit
 
-with st.spinner("Melatih AI Hybrid (Collaborative + Content-Based)..."):
+with st.spinner("Mengunduh data perpustakaan dari Google Drive dan menyeduh teh..."):
+    books_df, users_df, ratings_df, ratings_explicit = load_and_clean_data()
+
+# ===== HYBRID RECOMMENDATION ENGINE =====
+@st.cache_data
+def build_hybrid_matrices(ratings_exp, books):
+    # OPTIMASI SERVER: Naikkan threshold menjadi 50 agar memori tidak over-limit
+    counts = ratings_exp["ISBN"].value_counts()
+    popular_isbn = counts[counts >= 50].index
+    
+    # 1. Collaborative Filtering Matrix
+    filtered_ratings = ratings_exp[ratings_exp["ISBN"].isin(popular_isbn)]
+    pivot = filtered_ratings.pivot_table(index="ISBN", columns="User-ID", values="Book-Rating").fillna(0)
+    cf_sim = cosine_similarity(pivot)
+    cf_sim_df = pd.DataFrame(cf_sim, index=pivot.index, columns=pivot.index)
+    
+    # 2. Content-Based Matrix
+    pop_books = books[books["ISBN"].isin(popular_isbn)].copy()
+    pop_books = pop_books.set_index("ISBN").reindex(popular_isbn)
+    pop_books["content_features"] = pop_books["Book-Title"].fillna("") + " " + pop_books["Book-Author"].fillna("") + " " + pop_books["Publisher"].fillna("")
+    
+    tfidf = TfidfVectorizer(stop_words="english")
+    tfidf_matrix = tfidf.fit_transform(pop_books["content_features"])
+    cb_sim = cosine_similarity(tfidf_matrix)
+    cb_sim_df = pd.DataFrame(cb_sim, index=popular_isbn, columns=popular_isbn)
+    
+    return cf_sim_df, cb_sim_df
+
+with st.spinner("Melatih AI Hybrid (Mungkin memakan waktu 1-2 menit)..."):
     cf_sim_df, cb_sim_df = build_hybrid_matrices(ratings_explicit, books_df)
 
 # ===== SIDEBAR NAVIGATION =====
@@ -176,7 +139,6 @@ def create_book_card(row, tag="BACA", show_sim=False, sim_score=0):
     if pd.isna(cover_url) or len(cover_url) < 10:
         cover_url = f"https://covers.openlibrary.org/b/isbn/{row['ISBN']}-M.jpg"
     
-    # Detail Info (Tahun atau Skor Kemiripan)
     info_html = f'<div style="font-size:11px; color:#D4A373; margin-bottom:10px; font-weight:600;">Cocok {sim_score*100:.0f}% dengan seleramu</div>' if show_sim else f'<div style="font-size:11px; color:#A9A9A9; margin-bottom:10px;">Terbitan {row["Year-Of-Publication"]}</div>'
     
     return f"""
@@ -193,7 +155,7 @@ def create_book_card(row, tag="BACA", show_sim=False, sim_score=0):
     """
 
 # ==========================================
-# HALAMAN 1: INSPIRASI BACAAN (Discovery)
+# HALAMAN 1: INSPIRASI BACAAN
 # ==========================================
 if page == "✨ Inspirasi Bacaan":
     st.markdown("""
@@ -206,7 +168,6 @@ if page == "✨ Inspirasi Bacaan":
     </div>
     """, unsafe_allow_html=True)
 
-    # Search Bar Kalem
     search_q = st.text_input("", placeholder="🔍 Ketik judul buku atau penulis favoritmu di sini...", label_visibility="collapsed")
     if search_q:
         res = books_df[books_df["Book-Title"].str.contains(search_q, case=False, na=False) | books_df["Book-Author"].str.contains(search_q, case=False, na=False)].head(5)
@@ -218,7 +179,6 @@ if page == "✨ Inspirasi Bacaan":
 
     st.markdown('<div class="section-title">Koleksi Terpopuler Bulan Ini</div>', unsafe_allow_html=True)
     
-    # Ambil buku dengan interaksi terbanyak
     top_isbn = ratings_explicit["ISBN"].value_counts().head(6).index
     best_sellers = books_df[books_df["ISBN"].isin(top_isbn)].drop_duplicates(subset=["ISBN"])
     
@@ -229,26 +189,24 @@ if page == "✨ Inspirasi Bacaan":
             
     st.markdown('<br><br>', unsafe_allow_html=True)
     
-    # Kategori Mood
     st.markdown('<div class="section-title">Baca Sesuai Mood-mu</div>', unsafe_allow_html=True)
     m1, m2, m3, m4 = st.columns(4)
     moods = ["Menenangkan Pikiran", "Petualangan Magis", "Pengembangan Diri", "Romansa Klasik"]
     icons = ["🍵", "✨", "🌱", "💌"]
     for col, mood, icon in zip([m1, m2, m3, m4], moods, icons):
         col.markdown(f"""
-        <div style="text-align:center; padding:20px; background:white; border-radius:12px; border:1px solid #F0F2EF; box-shadow:0 4px 15px rgba(0,0,0,0.02); cursor:pointer; transition:0.3s;" onmouseover="this.style.transform='translateY(-5px)';" onmouseout="this.style.transform='translateY(0)';">
+        <div style="text-align:center; padding:20px; background:white; border-radius:12px; border:1px solid #F0F2EF; box-shadow:0 4px 15px rgba(0,0,0,0.02); cursor:pointer;">
             <div style="font-size:35px; margin-bottom:10px;">{icon}</div>
             <div style="font-size:14px; font-weight:600; color:#4A5553;">{mood}</div>
         </div>
         """, unsafe_allow_html=True)
 
 # ==========================================
-# HALAMAN 2: ESTETIKA DATA (Analytics)
+# HALAMAN 2: ESTETIKA DATA
 # ==========================================
 elif page == "📊 Estetika Data":
     st.markdown('<div class="section-title">Harmoni Ekosistem Buku</div>', unsafe_allow_html=True)
     
-    # KPI dengan style Feminin & Clean
     k1, k2, k3, k4 = st.columns(4)
     k1.markdown(f'<div class="kpi-card"><div class="kpi-icon">📚</div><div class="kpi-title">Koleksi Buku</div><div class="kpi-value">{books_df["ISBN"].nunique():,}</div></div>', unsafe_allow_html=True)
     k2.markdown(f'<div class="kpi-card"><div class="kpi-icon">👥</div><div class="kpi-title">Pembaca Setia</div><div class="kpi-value">{users_df["User-ID"].nunique():,}</div></div>', unsafe_allow_html=True)
@@ -276,7 +234,7 @@ elif page == "📊 Estetika Data":
         st.plotly_chart(fig2, use_container_width=True)
 
 # ==========================================
-# HALAMAN 3: AI KURATOR PERSONAL (Hybrid)
+# HALAMAN 3: AI KURATOR PERSONAL
 # ==========================================
 elif page == "🎯 AI Kurator Personal":
     st.markdown('<div class="section-title">Kurasi Spesial Untukmu</div>', unsafe_allow_html=True)
@@ -291,7 +249,6 @@ elif page == "🎯 AI Kurator Personal":
         ref_isbn = valid_books[valid_books["Book-Title"] == selected_title]["ISBN"].values[0]
         ref_book = books_df[books_df["ISBN"] == ref_isbn].iloc[0]
         
-        # Pilihan Logika Kustomisasi (Alpha Slider)
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("<p style='font-weight:600; color:#4A5553; font-family:\"Lora\", serif;'>Atur Karakter Rekomendasi (Hybrid AI)</p>", unsafe_allow_html=True)
         alpha = st.slider(
@@ -302,7 +259,6 @@ elif page == "🎯 AI Kurator Personal":
         st.markdown("---")
         st.markdown("<h3 style='font-family:\"Lora\", serif; color:#4A5553;'>✨ Bacaan yang Mungkin Mengisi Hatimu:</h3><br>", unsafe_allow_html=True)
         
-        # Hitung Skor Hybrid: (Alpha * CF) + ((1-Alpha) * CB)
         cf_scores = cf_sim_df[ref_isbn]
         cb_scores = cb_sim_df[ref_isbn]
         hybrid_scores = (alpha * cf_scores) + ((1 - alpha) * cb_scores)
