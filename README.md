@@ -1,42 +1,25 @@
-# 📚 Book Insight AI — ADL Dashboard
+# 🌿 Ruang Baca — Book Discovery & Analytics
 
-Dashboard Streamlit interaktif untuk **Book-Crossing Dataset** dengan **Hybrid Recommendation System** (Content-Based + Item-Based Collaborative Filtering). Dibangun dari notebook `adl_dashboard_1.py` dengan UI modern bergaya *Anime Insight AI*.
+> *Tempat menenangkan pikiran melalui harmoni data dan sastra.*
 
-![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.39-red?logo=streamlit)
-![License](https://img.shields.io/badge/License-MIT-green)
+**Ruang Baca** adalah platform penemuan buku (*book discovery*) dan dashboard analitik interaktif berbasis **Streamlit**. Mengusung estetika editorial puitis **Tyrian Purple × Citron × Cream** (`#66023C` × `#CAD183` × `#FFFDD0`) dengan dukungan latar belakang kustom berlapis *glassmorphism*, aplikasi ini memadukan algoritma *Machine Learning* untuk menyajikan rekomendasi bacaan yang personal dan menenangkan.
 
 ---
 
 ## ✨ Fitur Utama
 
-| Halaman | Deskripsi |
-|---|---|
-| 🏠 **Overview** | Ringkasan KPI global (buku, pengguna, rating), pencarian cepat, dan insight otomatis |
-| 📊 **Analytics** | Distribusi rating, top buku, genre penulis, heatmap korelasi, top publisher |
-| 📖 **Book Explorer** | Jelajahi katalog buku dengan filter penulis, tahun, dan rating minimum |
-| 👥 **User Analytics** | Distribusi usia, negara, top active users, gender/lokasi |
-| 🎯 **Recommendations** | Rekomendasi hybrid per pengguna (Weighted Hybrid / Switching Hybrid) |
-| 🧠 **AI Insights** | Tren, top penulis, analisis dominasi penerbit, dan kesimpulan strategis |
-| ❤️ **Favorites** | Simpan buku favorit selama sesi berlangsung |
-| 📖 **User Guide** | Panduan penggunaan lengkap |
-| ⚙️ **Settings** | Atur α (bobot CF vs CB), tema, dan parameter dashboard |
+### 1. 🏠 Beranda & Pencarian Pintar
+* **Instant Search:** Pencarian real-time berdasarkan judul buku atau nama penulis dengan tampilan kartu kover berbayang *offset* klasik.
+* **Koleksi Terpopuler:** Kurasi otomatis buku-buku dengan apresiasi komunitas tertinggi.
+* **Baca Sesuai Mood (*Mood-Based Filtering*):** Kurasi bacaan instan berdasarkan 4 suasana hati (*Menenangkan Pikiran*, *Petualangan Magis*, *Pengembangan Diri*, dan *Romansa Klasik*).
 
----
+### 2. 📊 Estetika Data (Analitik Ekosistem)
+* **Indikator KPI Utama:** Ringkasan metrik koleksi buku, total pembaca setia, jumlah ulasan, dan rata-rata kepuasan komunitas.
+* **Tren Publikasi (*Time-Series*):** Grafik area interaktif yang memetakan pergerakan rilis literatur dari tahun 1970 hingga 2026.
+* **Sebaran Apresiasi & Demografi Usia:** Distribusi skor rating eksplisit (1–10) dan profil usia pembaca.
+* **Segmentasi Persona Pembaca (*K-Means Clustering*):** Pengelompokan otomatis pembaca menggunakan algoritma *Unsupervised Learning* (`StandardScaler` + `KMeans`) ke dalam 3 persona: *Kutu Buku Aktif*, *Kritikus Selektif*, dan *Pembaca Santai*.
 
-## 🧠 Arsitektur Model Rekomendasi
-
-Sistem mengimplementasikan **hybrid recommendation** sesuai Bab B di notebook ADL:
-
-### 1. Content-Based Filtering (CB)
-- **Item profile**: TF-IDF judul (1-gram + 2-gram) + one-hot penulis + one-hot penerbit
-- **Bobot fitur**: `W_TITLE = 1.0`, `W_AUTHOR = 1.0`, `W_PUBLISHER = 0.3`
-- **User profile**: bobot rating di atas rata-rata pengguna
-- **Similarity**: cosine similarity antar-vektor item
-
-### 2. Item-Based Collaborative Filtering (CF)
-- **Similarity**: cosine pada pola "dirating bersama" (0/1)
-- **KNN**: 20 tetangga terdekat per buku (menekan noise)
-- **Matriks**: sparse user×book dari rating eksplisit 1–10
-
-### 3. Weighted Hybrid (pengguna inti)
+### 3. 🎯 Kurator Personal (Hybrid AI Engine)
+* **Hybrid Filtering:** Menggabungkan matriks **Collaborative Filtering** (pola selera pembaca serupa) dan **Content-Based Filtering** (kemiripan teks judul, penulis, dan penerbit via `TF-IDF` & `Cosine Similarity`).
+* **Kontrol Karakter Rekomendasi:** *Slider* bobot $\alpha$ interaktif untuk mengatur keseimbangan antara kemiripan tema vs. selera komunitas, dilengkapi pilihan jumlah tampilan (3, 6, atau 12 buku).
+* **Cold-Start Protocol:** Sistem pengaman otomatis yang mendeteksi buku langka/minim ulasan dan mengalihkannya ke daftar kurasi terbaik tanpa memicu *error*.
