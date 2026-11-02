@@ -63,10 +63,7 @@ if not BG_IMAGE and os.path.exists("assets") and os.path.isdir("assets"):
                     break
 
 # Overlay putih transparan tipis agar garis pastel kalem & teks Tyrian Purple tetap tajam terbaca
-if BG_IMAGE:
-    bg_css = f"url('data:image/jpeg;base64,{BG_IMAGE}')"
-else:
-    bg_css = CREAM
+bg_css = CREAM
 
 # ===== CSS KUSTOM =====
 st.markdown(f"""
@@ -587,7 +584,9 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-# ===== RENDER BOOK CARD =====
+# ==========================================
+# RENDER BOOK CARD (TANPA ARROW_RIGHT)
+# ==========================================
 def render_book_card(row, col, tag="BACA", show_sim=False, sim_score=0.0):
     cover_url = get_cover(row)
     year_str = format_year(row.get("Year-Of-Publication"))
@@ -610,7 +609,7 @@ def render_book_card(row, col, tag="BACA", show_sim=False, sim_score=0.0):
     </div>
     """, unsafe_allow_html=True)
 
-    with col.expander("🔎 LIHAT DETAIL"):
+    with col.expander(""):
         st.markdown(f"**{row['Book-Title']}**")
         st.markdown(f"- **Penulis:** {row['Book-Author']}")
         st.markdown(f"- **Penerbit:** {row.get('Publisher', '—')}")
@@ -742,7 +741,6 @@ elif page == "📊 Estetika Data":
         margin=dict(l=20, r=20, t=20, b=20),
     )
 
-    # Grafik 1: Tren Tahun Publikasi (Time-Series)
     st.markdown(
         f"<h3 style='text-align:center; font-family:\"Playfair Display\", serif; "
         f"color:{PURPLE}; font-style:italic; margin-bottom:4px;'>Tren Tahun Publikasi Buku</h3>"
@@ -822,7 +820,7 @@ elif page == "📊 Estetika Data":
         st.plotly_chart(fig3, use_container_width=True)
 
 # ==========================================
-# HALAMAN 3: KURATOR PERSONAL (DENGAN COLD-START)
+# HALAMAN 3: KURATOR PERSONAL
 # ==========================================
 elif page == "🎯 Kurator Personal":
     st.markdown('<div class="section-title">Kurasi Spesial Untukmu</div>', unsafe_allow_html=True)
@@ -845,7 +843,6 @@ elif page == "🎯 Kurator Personal":
         ref_isbn = books_df[books_df["Book-Title"] == selected_title]["ISBN"].values[0]
 
         if ref_isbn not in cf_sim_df.index:
-            # ---> COLD-START PROTOCOL <---
             st.markdown(
                 '<div class="info-box">🌿 <strong>Cold-Start Protocol Aktif:</strong> Buku yang kamu pilih adalah permata tersembunyi dengan ulasan komunitas yang masih terbatas. Sebagai gantinya, berikut adalah kurasi mahakarya paling populer di Ruang Baca:</div>',
                 unsafe_allow_html=True
@@ -859,7 +856,6 @@ elif page == "🎯 Kurator Personal":
                 for i, (_, row) in enumerate(chunk.iterrows()):
                     render_book_card(row, cols[i], tag="BEST SELLER")
         else:
-            # ---> HYBRID AI NORMAL <---
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown(
                 f"<p style='font-weight:700; color:{PURPLE}; font-family:\"Playfair Display\", serif; "
@@ -888,7 +884,6 @@ elif page == "🎯 Kurator Personal":
             top_similar_isbns = hybrid_scores.sort_values(ascending=False).iloc[1:n_reco + 1].index
             reco_books = books_df[books_df["ISBN"].isin(top_similar_isbns)].drop_duplicates(subset=["ISBN"])
 
-            # Urutkan sesuai skor tertinggi dan tampilkan maksimal 6 kartu per baris
             ordered_rows = []
             for isbn in top_similar_isbns:
                 b_row = reco_books[reco_books["ISBN"] == isbn]
