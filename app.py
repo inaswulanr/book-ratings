@@ -20,9 +20,9 @@ st.set_page_config(
 )
 
 # ===== PALET WARNA =====
-CITRON   = "#CAD183"
-PURPLE   = "#66023C"
-CREAM    = "#FFFDD0"
+CITRON  = "#CAD183"
+PURPLE  = "#66023C"
+CREAM   = "#FFFDD0"
 DARK_INK = "#3D0A22"   # varian lebih gelap untuk teks di cream
 SOFT     = "#F6F3C8"   # cream lebih pekat untuk card
 
@@ -586,9 +586,9 @@ if page == "🏠 Beranda":
         "🍵  Menenangkan Pikiran": ["Spiritual", "Philosophy", "Self-Help", "Inspirational",
                                     "Poetry", "Meditation", "Peace", "Zen"],
         "✨  Petualangan Magis": ["Fantasy", "Magic", "Adventure", "Epic", "Wizard",
-                                  "Quest", "Dragon", "Myth"],
+                                   "Quest", "Dragon", "Myth"],
         "🌱  Pengembangan Diri": ["Self", "Business", "Success", "Psychology", "Motivation",
-                                  "Productivity", "Leadership", "Personal"],
+                                   "Productivity", "Leadership", "Personal"],
         "💌  Romansa Klasik": ["Romance", "Love", "Passion", "Heart", "Historical",
                                "Victorian", "Regency", "Bride"],
     }
