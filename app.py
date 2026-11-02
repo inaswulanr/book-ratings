@@ -21,6 +21,7 @@ st.set_page_config(
 )
 
 # ===== LOAD BACKGROUND IMAGE (base64) =====
+# ===== LOAD BACKGROUND IMAGE (dengan fallback CSS stripe pastel) =====
 def get_base64(path):
     try:
         with open(path, "rb") as f:
@@ -28,27 +29,70 @@ def get_base64(path):
     except Exception:
         return ""
 
-BG_PATH = "assets/background.jpg"
-BG_B64 = get_base64(BG_PATH)
+# Coba beberapa kemungkinan path & ekstensi
+BG_B64 = ""
+for candidate in [
+    "assets/background.jpg", "assets/background.jpeg",
+    "assets/background.png", "assets/background.webp",
+    "assets/bg.jpg", "assets/bg.png",
+]:
+    BG_B64 = get_base64(candidate)
+    if BG_B64:
+        break
 
-# ===== CSS KUSTOM =====
+# Kalau gambar tidak ditemukan → pakai CSS pattern stripe pastel
+# (meniru gambar pengguna: garis vertikal mint, lavender, pink, cream)
+if BG_B64:
+    BG_LAYER = (
+        'linear-gradient(rgba(249,250,248,0.55), rgba(249,250,248,0.75)), '
+        f'url("data:image/jpeg;base64,{BG_B64}")'
+    )
+    BG_SIZE = "cover"
+    BG_ATTACH = "fixed"
+else:
+    # Fallback: stripe pastel via repeating-linear-gradient
+    BG_LAYER = (
+        "repeating-linear-gradient(90deg,"
+        " #D8E9E0 0px, #D8E9E0 18px,"
+        " #E8D7D0 18px, #E8D7D0 32px,"
+        " #D8D4EC 32px, #D8D4EC 44px,"
+        " #F5F1E0 44px, #F5F1E0 60px,"
+        " #B2C9AB 60px, #B2C9AB 68px,"
+        " #F0E6F0 68px, #F0E6F0 84px,"
+        " #D8E9E0 84px, #D8E9E0 102px,"
+        " #E8D7D0 102px, #E8D7D0 116px,"
+        " #D8D4EC 116px, #D8D4EC 128px,"
+        " #F5F1E0 128px, #F5F1E0 144px)"
+    )
+    BG_SIZE = "auto"
+    BG_ATTACH = "scroll"
+
+# CSS
 st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Quicksand:wght@300;400;500;600;700&display=swap');
 
 html, body, [class*="css"] {{ font-family: 'Quicksand', sans-serif; color: #4A5553; }}
 
-/* BACKGROUND IMAGE + OVERLAY */
+/* ==== BACKGROUND ==== */
 .stApp {{
-    background-image:
-        linear-gradient(rgba(249,250,248,0.55), rgba(249,250,248,0.75)),
-        url("data:image/jpeg;base64,{BG_B64}");
-    background-size: cover;
+    background-image: {BG_LAYER};
+    background-size: {BG_SIZE};
     background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
+    background-attachment: {BG_ATTACH};
+    background-repeat: repeat;
 }}
 
+/* Pastikan main container transparan agar background terlihat */
+[data-testid="stAppViewContainer"],
+[data-testid="stHeader"],
+[data-testid="stToolbar"],
+[data-testid="stDecoration"],
+section.main > div {{
+    background: transparent !important;
+}}
+
+/* Sidebar semi transparan */
 [data-testid="stSidebar"] {{
     background-color: rgba(156, 180, 161, 0.92) !important;
     backdrop-filter: blur(6px);
@@ -69,7 +113,7 @@ html, body, [class*="css"] {{ font-family: 'Quicksand', sans-serif; color: #4A55
 }}
 [data-testid="stTextInput"] input::placeholder {{ color: #B2C9AB !important; }}
 
-/* Detail expander */
+/* Expander */
 [data-testid="stExpander"] {{
     background-color: #FFFFFF !important;
     border: 1px solid #F0F2EF !important;
@@ -138,7 +182,7 @@ html, body, [class*="css"] {{ font-family: 'Quicksand', sans-serif; color: #4A55
 .kpi-title {{ font-size: 13px; color: #8FA998; font-weight: 600; margin-bottom: 5px; letter-spacing: 0.5px; }}
 .kpi-value {{ font-family: 'Lora', serif; font-size: 28px; font-weight: 600; color: #4A5553; }}
 
-/* Mood card (clickable) */
+/* Mood card */
 .mood-card {{
     background: white; border-radius: 12px; padding: 22px 14px;
     border: 1px solid #F0F2EF; box-shadow: 0 4px 15px rgba(0,0,0,0.02);
@@ -152,9 +196,6 @@ html, body, [class*="css"] {{ font-family: 'Quicksand', sans-serif; color: #4A55
 .mood-icon {{ font-size: 35px; margin-bottom: 10px; }}
 .mood-label {{ font-size: 14px; font-weight: 600; color: #4A5553; }}
 .mood-card.active {{ border-color: #D4A373; background: #FBF5EC; }}
-
-/* Fix radio (mood) agar tidak menampilkan bullet default */
-div[role="radiogroup"].mood-group label > div:first-child {{ display: none !important; }}
 </style>
 """, unsafe_allow_html=True)
 
